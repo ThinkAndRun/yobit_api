@@ -20,7 +20,49 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+1. Initialize:
+
+    ```ruby
+    client = YobitApi::Client.new
+    ```
+2. Setup your API key (for Trade API):
+
+    Use
+    ```ruby
+    client = YobitApi::Client.new(key, secret)
+    ```
+    Or
+    ```ruby
+    client.config.key = key
+    client.config.secret = secret
+    ```
+3. Use it:
+
+    ```ruby
+    client.info
+    ```
+
+    Full list of supported methods, see [yobit](https://yobit.net/en/api) for usage.
+
+    *Public API:*
+    ```ruby
+    info
+    ticker
+    depth
+    trades
+    ```
+    
+    *Trade API:*
+    ```ruby
+    get_info
+    trade
+    active_orders
+    order_info
+    cancel_order
+    trade_history
+    get_deposit_address
+    withdraw_coins_to_address
+    ```
 
 ## Development
 
