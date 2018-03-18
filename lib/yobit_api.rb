@@ -10,9 +10,11 @@ module YobitApi
   class Client
     attr_accessor :config
 
-    def initialize(key='', secret='')
-      Struct.new('ApiConfig', :key, :secret)
-      @config = Struct::ApiConfig.new(key, secret)
+    def initialize(key: '', secret: '', key_init_date: Time.now)
+      key_init_date = Time.parse(key_init_date) unless key_init_date.is_a? Time
+      Struct.new('ApiConfig', :key, :secret, :init_time)
+      @config = Struct::ApiConfig.new(key, secret, key_init_date)
+      raise 'Nonce is expired' if nonce > 2147483646
     end
 
     def info
@@ -37,7 +39,7 @@ module YobitApi
     end
 
     def get_info
-      get('getInfo', client: trade_client)
+      post('getInfo', client: trade_client)
     end
 
     def trade(pair:, type:, rate:, amount:)
@@ -45,18 +47,18 @@ module YobitApi
     end
 
     def active_orders(pair)
-      get('ActiveOrders', client: trade_client, pair: pair)
+      post('ActiveOrders', client: trade_client, pair: pair)
     end
 
     def order_info(order_id)
-      get('OrderInfo', client: trade_client, order_id: order_id)
+      post('OrderInfo', client: trade_client, order_id: order_id)
     end
 
     def cancel_order(order_id)
       post('CancelOrder', client: trade_client, order_id: order_id)
     end
 
-    def trade_history(from: 0, count: 1000, from_id: 0, end_id: 1000, order: "DESC", since: 0, end_time: Time.new(3000).to_i, pair:)
+    def trade_history(from: 0, count: 1000, from_id: 0, end_id: 1000, order: 'DESC', since: 0, end_time: Time.new(3000).to_i, pair:)
       post('TradeHistory', client: trade_client,
            from:     from,
            count:    count,
@@ -64,12 +66,12 @@ module YobitApi
            end_id:   end_id,
            order:    order,
            since:    since,
-           end_time: end_time,
+           end:      end_time,
            pair:     pair)
     end
 
     def get_deposit_address(coin_name:, need_new: 0)
-      get('GetDepositAddress', client: trade_client, coinName: coin_name, need_new: need_new)
+      post('GetDepositAddress', client: trade_client, coinName: coin_name, need_new: need_new)
     end
 
     def withdraw_coins_to_address(coin_name:, amount:, address:)
@@ -83,26 +85,35 @@ module YobitApi
     end
 
     def public_client
-      @@public_client ||= RestClient::Resource.new(YobitApi::PUBLIC_API_URL)
+      @public_client ||= RestClient::Resource.new(YobitApi::PUBLIC_API_URL)
     end
 
     def trade_client
-      @@trade_client ||= RestClient::Resource.new(YobitApi::TRADE_API_URL)
+      @trade_client ||= RestClient::Resource.new(YobitApi::TRADE_API_URL)
     end
 
     def get(method_name, client: public_client, **params)
-      client[method_name].get(params)
+      params = '?'.concat((params.map{ |k,v| "#{k}=#{v}"}).join('&'))
+      client[method_name + params].get
+    rescue => e
+      e.response
     end
 
     def post(method_name, client: public_client, **params)
-      params[:nonce] = (Time.now.to_f * 10000000).to_i
-      params[:sign]  = create_sign(params)
-      client[method_name].post(params, {key: config.key})
+      params[:nonce] = nonce
+      params[:method] = method_name
+      client.post(params, {key: config.key, sign: create_sign(params)})
+    rescue => e
+      e.response
     end
 
     def create_sign(data)
       encoded_data = Addressable::URI.form_encode(data)
       OpenSSL::HMAC.hexdigest('sha512', config.secret, encoded_data)
+    end
+
+    def nonce
+      ((Time.now - config.init_time).to_f * 10).to_i
     end
   end
 end

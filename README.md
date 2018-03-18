@@ -20,23 +20,25 @@ Or install it yourself as:
 
 ## Usage
 
-1. Initialize:
+1. **Initialize:**
 
     ```ruby
     client = YobitApi::Client.new
     ```
-2. Setup your API key (for Trade API):
+2. **Setup your API key (for Trade API):**
 
     Use
     ```ruby
-    client = YobitApi::Client.new(key, secret)
+    client = YobitApi::Client.new(key: 'key', secret: 'secret', key_init_date: '01.01.2018')
     ```
+    Where key_init_date = api key release date or first usage day date
+    
     Or
     ```ruby
     client.config.key = key
     client.config.secret = secret
     ```
-3. Use it:
+3. **Use the api:**
 
     ```ruby
     client.info
@@ -47,21 +49,21 @@ Or install it yourself as:
     *Public API:*
     ```ruby
     info
-    ticker
-    depth
-    trades
+    ticker(['usd_rur'])
+    depth(pairs_list: ['usd_rur'], limit: 1)
+    trades(pairs_list: ['usd_rur'], limit: 1)
     ```
     
     *Trade API:*
     ```ruby
     get_info
-    trade
-    active_orders
-    order_info
-    cancel_order
-    trade_history
-    get_deposit_address
-    withdraw_coins_to_address
+    trade(pair: 'usd_rur', type: 'buy', rate: 1, amount: 1)
+    active_orders('usd_rur')
+    order_info(1)
+    cancel_order(1)
+    trade_history(pair: 'usd_rur')
+    get_deposit_address(coin_name: 'BTC', need_new: 0)
+    withdraw_coins_to_address(coin_name: 'BTC', amount: 1, address: 'address')
     ```
 
 ## Development
