@@ -12,7 +12,7 @@ module YobitApi
 
     def initialize(key: '', secret: '', key_init_date: Time.now)
       key_init_date = Time.parse(key_init_date) unless key_init_date.is_a? Time
-      Struct.new('ApiConfig', :key, :secret, :init_time)
+      Struct.new('ApiConfig', :key, :secret, :key_init_date)
       @config = Struct::ApiConfig.new(key, secret, key_init_date)
       raise 'Nonce is expired' if nonce > 2147483646
     end
@@ -113,7 +113,7 @@ module YobitApi
     end
 
     def nonce
-      ((Time.now - config.init_time).to_f * 10).to_i
+      ((Time.now - config.key_init_date).to_f * 10).to_i
     end
   end
 end
