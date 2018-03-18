@@ -27,16 +27,17 @@ Or install it yourself as:
     ```
 2. **Setup your API key (for Trade API):**
 
-    Use
+    Use:
     ```ruby
     client = YobitApi::Client.new(key: 'key', secret: 'secret', key_init_date: '01.01.2018')
     ```
-    Where key_init_date = api key release date or first usage day date
+    Where key_init_date = api key release date or first usage day date.
     
-    Or
+    Or:
     ```ruby
     client.config.key = key
     client.config.secret = secret
+    client.config.key_init_date = '01.01.2018'
     ```
 3. **Use the api:**
 
